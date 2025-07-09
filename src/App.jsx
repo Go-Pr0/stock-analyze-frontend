@@ -1,9 +1,13 @@
 import { useState, useEffect } from 'react';
+import axios from 'axios';
+import { AuthProvider } from './contexts/AuthContext';
+import AuthWrapper from './components/AuthWrapper';
+import Header from './components/Header';
 import SearchForm from './components/SearchForm';
 import ReportDisplay from './components/ReportDisplay';
 import ResearchHistory from './components/ResearchHistory';
 
-function App() {
+function AppContent() {
   const [currentReport, setCurrentReport] = useState(null);
   const [researchHistory, setResearchHistory] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -24,29 +28,24 @@ function App() {
   const handleSearch = async (prompt, ticker) => {
     setIsLoading(true);
 
-    // Use an environment variable for the API URL, with a fallback for safety
     const apiUrl = import.meta.env.VITE_API_URL || '';
 
     try {
-      const response = await fetch(`${apiUrl}/api/research`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({ prompt, ticker })
+      const response = await axios.post(`${apiUrl}/api/research`, {
+        prompt,
+        ticker
       });
 
-      if (!response.ok) {
-        throw new Error('Failed to fetch report');
-      }
-
-      const report = await response.json();
-
+      const report = response.data;
       setCurrentReport(report);
       setResearchHistory(prev => [report, ...prev.slice(0, 9)]); // Keep last 10 reports
     } catch (error) {
-      console.error(error);
-      alert('Sorry, something went wrong while fetching the report.');
+      console.error('Research request failed:', error);
+      if (error.response?.status === 401) {
+        alert('Your session has expired. Please log in again.');
+      } else {
+        alert('Sorry, something went wrong while fetching the report.');
+      }
     } finally {
       setIsLoading(false);
     }
@@ -58,12 +57,11 @@ function App() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100">
+      <Header />
+      
       <div className="container mx-auto px-4 py-8">
         {/* Header */}
         <div className="text-center mb-12">
-          <h1 className="text-4xl font-bold text-slate-800 mb-4">
-            Stock Research Platform
-          </h1>
           <p className="text-lg text-slate-600 max-w-2xl mx-auto">
             Get comprehensive company analysis and financial insights with our advanced research tools
           </p>
@@ -103,6 +101,16 @@ function App() {
         </div>
       </div>
     </div>
+  );
+}
+
+function App() {
+  return (
+    <AuthProvider>
+      <AuthWrapper>
+        <AppContent />
+      </AuthWrapper>
+    </AuthProvider>
   );
 }
 
