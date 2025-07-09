@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import axios from 'axios';
-import { AuthProvider } from './contexts/AuthContext';
+import { AuthProvider, useAuth } from './contexts/AuthContext';
 import AuthWrapper from './components/AuthWrapper';
 import Header from './components/Header';
 import SearchForm from './components/SearchForm';
@@ -8,22 +8,41 @@ import ReportDisplay from './components/ReportDisplay';
 import ResearchHistory from './components/ResearchHistory';
 
 function AppContent() {
+  const { isAuthenticated } = useAuth();
   const [currentReport, setCurrentReport] = useState(null);
   const [researchHistory, setResearchHistory] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
+  const [isLoadingHistory, setIsLoadingHistory] = useState(false);
 
-  // Load research history from localStorage on component mount
+  // Load research history from backend when user is authenticated
   useEffect(() => {
-    const savedHistory = localStorage.getItem('researchHistory');
-    if (savedHistory) {
-      setResearchHistory(JSON.parse(savedHistory));
+    if (isAuthenticated) {
+      loadResearchHistory();
+    } else {
+      // Clear history when user logs out
+      setResearchHistory([]);
+      setCurrentReport(null);
     }
-  }, []);
+  }, [isAuthenticated]);
 
-  // Save research history to localStorage whenever it changes
-  useEffect(() => {
-    localStorage.setItem('researchHistory', JSON.stringify(researchHistory));
-  }, [researchHistory]);
+  const loadResearchHistory = async () => {
+    setIsLoadingHistory(true);
+    const apiUrl = import.meta.env.VITE_API_URL || '';
+
+    try {
+      const response = await axios.get(`${apiUrl}/api/research`);
+      setResearchHistory(response.data);
+    } catch (error) {
+      console.error('Failed to load research history:', error);
+      if (error.response?.status === 401) {
+        console.log('User not authenticated, skipping history load');
+      } else {
+        console.error('Error loading research history');
+      }
+    } finally {
+      setIsLoadingHistory(false);
+    }
+  };
 
   const handleSearch = async (prompt, ticker) => {
     setIsLoading(true);
@@ -38,7 +57,9 @@ function AppContent() {
 
       const report = response.data;
       setCurrentReport(report);
-      setResearchHistory(prev => [report, ...prev.slice(0, 9)]); // Keep last 10 reports
+      
+      // Reload history from backend to get the latest data
+      await loadResearchHistory();
     } catch (error) {
       console.error('Research request failed:', error);
       if (error.response?.status === 401) {
@@ -53,6 +74,29 @@ function AppContent() {
 
   const handleHistorySelect = (report) => {
     setCurrentReport(report);
+  };
+
+  const handleDeleteReport = async (reportId) => {
+    const apiUrl = import.meta.env.VITE_API_URL || '';
+
+    try {
+      await axios.delete(`${apiUrl}/api/research/${reportId}`);
+      
+      // If the deleted report is currently displayed, clear it
+      if (currentReport?.id === reportId) {
+        setCurrentReport(null);
+      }
+      
+      // Reload history to reflect the deletion
+      await loadResearchHistory();
+    } catch (error) {
+      console.error('Failed to delete report:', error);
+      if (error.response?.status === 401) {
+        alert('Your session has expired. Please log in again.');
+      } else {
+        alert('Sorry, something went wrong while deleting the report.');
+      }
+    }
   };
 
   return (
@@ -77,6 +121,7 @@ function AppContent() {
                   <ResearchHistory 
                     history={researchHistory} 
                     onSelect={handleHistorySelect}
+                    onDelete={handleDeleteReport}
                   />
                 </div>
               )}
@@ -93,6 +138,7 @@ function AppContent() {
                 <ResearchHistory 
                   history={researchHistory} 
                   onSelect={handleHistorySelect}
+                  onDelete={handleDeleteReport}
                   currentReportId={currentReport?.id}
                 />
               </div>

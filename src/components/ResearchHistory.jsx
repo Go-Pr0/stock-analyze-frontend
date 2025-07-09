@@ -1,4 +1,4 @@
-const ResearchHistory = ({ history, onSelect, currentReportId }) => {
+const ResearchHistory = ({ history, onSelect, onDelete, currentReportId }) => {
   const formatDate = (timestamp) => {
     const date = new Date(timestamp);
     const now = new Date();
@@ -11,6 +11,13 @@ const ResearchHistory = ({ history, onSelect, currentReportId }) => {
     } else {
       const diffInDays = Math.floor(diffInHours / 24);
       return `${diffInDays}d ago`;
+    }
+  };
+
+  const handleDelete = (e, reportId) => {
+    e.stopPropagation(); // Prevent triggering the select action
+    if (window.confirm('Are you sure you want to delete this report?')) {
+      onDelete(reportId);
     }
   };
 
@@ -58,7 +65,18 @@ const ResearchHistory = ({ history, onSelect, currentReportId }) => {
                   </span>
                 </div>
               </div>
-              <div className="ml-3 opacity-0 group-hover:opacity-100 transition-opacity">
+              <div className="ml-3 flex items-center space-x-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                {onDelete && (
+                  <button
+                    onClick={(e) => handleDelete(e, report.id)}
+                    className="p-1 text-red-400 hover:text-red-600 hover:bg-red-50 rounded transition-colors"
+                    title="Delete report"
+                  >
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                    </svg>
+                  </button>
+                )}
                 <svg className="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
                 </svg>
