@@ -33,6 +33,7 @@ RUN chmod +x /docker-entrypoint.sh
 RUN chown -R nginx:nginx /usr/share/nginx/html && \
     chmod -R 755 /usr/share/nginx/html
 
+# Expose port 80 by default (Railway will override with $PORT)
 EXPOSE 80
 
 # Use entrypoint script to handle environment variables
