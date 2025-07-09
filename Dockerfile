@@ -24,6 +24,9 @@ RUN ls -la dist/index.html || echo "ERROR: index.html not found in dist/"
 # ---- Production stage ----
 FROM nginx:1.25-alpine AS runner
 
+# Install curl for debugging
+RUN apk add --no-cache curl
+
 # Copy built assets from previous stage
 COPY --from=builder /app/dist /usr/share/nginx/html
 

@@ -26,7 +26,17 @@ sed -i "s|\${PORT:-80}|${PORT}|g" /etc/nginx/conf.d/default.conf
 
 # Verify the configuration
 echo "📋 NGINX configuration:"
-cat /etc/nginx/conf.d/default.conf | grep -A 5 -B 5 "listen\|proxy_pass\|root"
+cat /etc/nginx/conf.d/default.conf | grep -A 10 -B 5 "location /api/"
+
+# Test backend connectivity
+echo "🔗 Testing backend connectivity:"
+echo "Backend URL: $BACKEND_URL"
+if command -v curl >/dev/null 2>&1; then
+    echo "Testing backend health endpoint..."
+    curl -v --connect-timeout 10 "$BACKEND_URL/health" || echo "❌ Backend not reachable"
+else
+    echo "curl not available, skipping connectivity test"
+fi
 
 # Test NGINX configuration
 nginx -t
