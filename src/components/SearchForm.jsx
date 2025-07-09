@@ -6,7 +6,7 @@ const SearchForm = ({ onSearch, isLoading }) => {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    if ((companyName.trim() || ticker.trim()) && !isLoading) {
+    if (companyName.trim() && ticker.trim() && !isLoading) {
       onSearch(companyName.trim(), ticker.trim());
       setCompanyName('');
       setTicker('');
@@ -21,6 +21,8 @@ const SearchForm = ({ onSearch, isLoading }) => {
     { name: 'Google', ticker: 'GOOGL' },
   ];
 
+  const areFieldsFilled = companyName.trim() !== '' && ticker.trim() !== '';
+
   return (
     <div className="w-full max-w-2xl mx-auto">
       <form onSubmit={handleSubmit}>
@@ -31,7 +33,7 @@ const SearchForm = ({ onSearch, isLoading }) => {
               value={companyName}
               onChange={(e) => setCompanyName(e.target.value)}
               placeholder="Company Name/Extra Info"
-              className="w-2/3 px-6 py-4 text-lg bg-transparent border-r border-slate-200 focus:outline-none"
+              className="w-1/2 px-6 py-4 text-lg bg-transparent border-r border-slate-200 focus:outline-none"
               disabled={isLoading}
             />
             <input
@@ -39,18 +41,18 @@ const SearchForm = ({ onSearch, isLoading }) => {
               value={ticker}
               onChange={(e) => setTicker(e.target.value)}
               placeholder="Ticker"
-              className="w-1/3 px-6 py-4 text-lg bg-transparent focus:outline-none"
+              className="w-1/2 px-6 py-4 text-lg bg-transparent focus:outline-none"
               disabled={isLoading}
             />
           </div>
           <button
             type="submit"
-            disabled={(!companyName.trim() && !ticker.trim()) || isLoading}
-            className="absolute right-2 top-1/2 transform -translate-y-1/2
+            disabled={!areFieldsFilled || isLoading}
+            className={`absolute right-2 top-1/2 transform -translate-y-1/2
                      px-6 py-2 bg-blue-600 text-white rounded-xl
                      hover:bg-blue-700 focus:outline-none focus:ring-4 focus:ring-blue-100
                      disabled:bg-slate-300 disabled:cursor-not-allowed
-                     transition-all duration-200 font-medium"
+                     transition-all duration-300 font-medium ${areFieldsFilled ? 'opacity-100' : 'opacity-0'}`}
           >
             {isLoading ? (
               <div className="flex items-center space-x-2">
