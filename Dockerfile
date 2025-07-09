@@ -17,12 +17,23 @@ RUN npm run build
 
 
 # ---- Production stage ----
-FROM caddy:2-alpine AS runner
+FROM nginx:1.25-alpine AS runner
 
 # Copy built assets from previous stage
-COPY --from=builder /app/dist /usr/share/caddy
+COPY --from=builder /app/dist /usr/share/nginx/html
 
-# Copy our Caddyfile
-COPY Caddyfile /etc/caddy/Caddyfile
+# Copy our nginx configuration
+COPY nginx.conf /etc/nginx/conf.d/default.conf
 
-EXPOSE 80 
+# Copy and set up entrypoint script
+COPY docker-entrypoint.sh /docker-entrypoint.sh
+RUN chmod +x /docker-entrypoint.sh
+
+# Create nginx user and set permissions
+RUN chown -R nginx:nginx /usr/share/nginx/html && \
+    chmod -R 755 /usr/share/nginx/html
+
+EXPOSE 80
+
+# Use entrypoint script to handle environment variables
+ENTRYPOINT ["/docker-entrypoint.sh"] 
