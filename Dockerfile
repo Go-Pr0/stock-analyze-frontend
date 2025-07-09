@@ -13,19 +13,16 @@ RUN npm ci --silent
 
 # Copy the rest of the source code and build
 COPY . ./
-# We also need to copy the new nginx config into this stage
-COPY nginx.conf ./
 RUN npm run build
 
 
 # ---- Production stage ----
-FROM nginx:alpine AS runner
+FROM caddy:2-alpine AS runner
 
 # Copy built assets from previous stage
-COPY --from=builder /app/dist /usr/share/nginx/html
+COPY --from=builder /app/dist /usr/share/caddy
 
-# Copy our custom nginx config to enable SPA routing and API proxy
-COPY --from=builder /app/nginx.conf /etc/nginx/templates/default.conf.template
+# Copy our Caddyfile
+COPY Caddyfile /etc/caddy/Caddyfile
 
-EXPOSE 80
-# The default entrypoint will substitute env variables and start nginx 
+EXPOSE 80 

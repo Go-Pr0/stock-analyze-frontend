@@ -1,0 +1,12 @@
+{
+    # Enable SPA-style routing
+    try_files {path} /index.html
+}
+
+# Proxy API requests to the backend service
+reverse_proxy /api/* {
+    to {env.BACKEND_URL}
+}
+
+# Serve the static frontend assets
+file_server 
