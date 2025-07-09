@@ -8,13 +8,13 @@ ARG VITE_API_URL
 ENV VITE_API_URL=$VITE_API_URL
 
 # Install dependencies based on lockfile for reproducible builds
-COPY frontend/package*.json ./
+COPY package*.json ./
 RUN npm ci --silent
 
 # Copy the rest of the source code and build
-COPY frontend/ ./
+COPY . ./
 # We also need to copy the new nginx config into this stage
-COPY frontend/nginx.conf ./
+COPY nginx.conf ./
 RUN npm run build
 
 
