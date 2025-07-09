@@ -6,6 +6,7 @@ import Header from './components/Header';
 import SearchForm from './components/SearchForm';
 import ReportDisplay from './components/ReportDisplay';
 import ResearchHistory from './components/ResearchHistory';
+import CompetitiveAnalysisPage from './components/CompetitiveAnalysisPage';
 
 function AppContent() {
   const { isAuthenticated } = useAuth();
@@ -13,6 +14,7 @@ function AppContent() {
   const [researchHistory, setResearchHistory] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
   const [isLoadingHistory, setIsLoadingHistory] = useState(false);
+  const [showCompetitiveAnalysis, setShowCompetitiveAnalysis] = useState(false);
 
   // Load research history from backend when user is authenticated
   useEffect(() => {
@@ -22,6 +24,7 @@ function AppContent() {
       // Clear history when user logs out
       setResearchHistory([]);
       setCurrentReport(null);
+      setShowCompetitiveAnalysis(false);
     }
   }, [isAuthenticated]);
 
@@ -57,6 +60,7 @@ function AppContent() {
 
       const report = response.data;
       setCurrentReport(report);
+      setShowCompetitiveAnalysis(false);
       
       // Reload history from backend to get the latest data
       await loadResearchHistory();
@@ -74,6 +78,15 @@ function AppContent() {
 
   const handleHistorySelect = (report) => {
     setCurrentReport(report);
+    setShowCompetitiveAnalysis(false);
+  };
+
+  const handleCompetitiveAnalysis = () => {
+    setShowCompetitiveAnalysis(true);
+  };
+
+  const handleBackToReport = () => {
+    setShowCompetitiveAnalysis(false);
   };
 
   const handleDeleteReport = async (reportId) => {
@@ -126,12 +139,25 @@ function AppContent() {
                 </div>
               )}
             </div>
+          ) : showCompetitiveAnalysis ? (
+            <CompetitiveAnalysisPage
+              report={currentReport}
+              onBack={handleBackToReport}
+              researchHistory={researchHistory}
+              onHistorySelect={handleHistorySelect}
+              onDeleteReport={handleDeleteReport}
+              currentReportId={currentReport?.id}
+            />
           ) : (
             <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
               <div className="lg:col-span-3">
                 <ReportDisplay 
                   report={currentReport} 
-                  onNewSearch={() => setCurrentReport(null)}
+                  onNewSearch={() => {
+                    setCurrentReport(null);
+                    setShowCompetitiveAnalysis(false);
+                  }}
+                  onCompetitiveAnalysis={handleCompetitiveAnalysis}
                 />
               </div>
               <div className="lg:col-span-1">

@@ -1,4 +1,4 @@
-const ReportDisplay = ({ report, onNewSearch }) => {
+const ReportDisplay = ({ report, onNewSearch, onCompetitiveAnalysis }) => {
   const { data } = report;
   
   const formatDate = (timestamp) => {
@@ -25,7 +25,7 @@ const ReportDisplay = ({ report, onNewSearch }) => {
       {/* Header */}
       <div className="bg-gradient-to-r from-slate-50 to-slate-100 px-8 py-6 border-b border-slate-200">
         <div className="flex items-center justify-between">
-          <div>
+          <div className="flex-1 mr-8">
             <h1 className="text-3xl font-bold text-slate-800 mb-2">
               {data.overview.name}
             </h1>
@@ -37,13 +37,28 @@ const ReportDisplay = ({ report, onNewSearch }) => {
               <span>Generated {formatDate(report.timestamp)}</span>
             </div>
           </div>
-          <button
-            onClick={onNewSearch}
-            className="px-4 py-2 text-sm bg-blue-600 text-white rounded-lg
-                     hover:bg-blue-700 transition-all duration-200"
-          >
-            New Search
-          </button>
+          <div className="flex items-center space-x-3">
+            <button
+              onClick={onNewSearch}
+              className="px-4 py-2 text-sm bg-blue-600 text-white rounded-lg
+                       hover:bg-blue-700 transition-all duration-200 font-medium"
+            >
+              New
+            </button>
+            {data.competitive && data.competitive.competitors && data.competitive.competitors.length > 0 && (
+              <button
+                onClick={onCompetitiveAnalysis}
+                className="inline-flex items-center px-4 py-2 text-sm bg-gradient-to-r from-green-600 to-green-700 text-white rounded-lg
+                         hover:from-green-700 hover:to-green-800 transition-all duration-200
+                         font-medium shadow-sm hover:shadow-md"
+              >
+                Compare
+                <svg className="w-4 h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                </svg>
+              </button>
+            )}
+          </div>
         </div>
       </div>
 
