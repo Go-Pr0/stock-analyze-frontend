@@ -15,6 +15,11 @@ RUN npm ci --silent
 COPY . ./
 RUN npm run build
 
+# Verify build output
+RUN ls -la dist/
+RUN echo "Build completed, checking for index.html:"
+RUN ls -la dist/index.html || echo "ERROR: index.html not found in dist/"
+
 
 # ---- Production stage ----
 FROM nginx:1.25-alpine AS runner
