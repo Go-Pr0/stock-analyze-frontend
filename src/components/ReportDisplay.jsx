@@ -1,3 +1,5 @@
+import { FormattedAnalysis } from '../utils/formatAnalysis';
+
 const ReportDisplay = ({ report, onNewSearch, onCompetitiveAnalysis }) => {
   const { data } = report;
   
@@ -45,7 +47,9 @@ const ReportDisplay = ({ report, onNewSearch, onCompetitiveAnalysis }) => {
             >
               New
             </button>
-            {data.competitive && data.competitive.competitors && data.competitive.competitors.length > 0 && (
+            {data.competitive && 
+             ((data.competitive.global_competitors && data.competitive.global_competitors.length > 0) ||
+              (data.competitive.national_competitors && data.competitive.national_competitors.length > 0)) && (
               <button
                 onClick={onCompetitiveAnalysis}
                 className="inline-flex items-center px-4 py-2 text-sm bg-gradient-to-r from-green-600 to-green-700 text-white rounded-lg
@@ -132,9 +136,10 @@ const ReportDisplay = ({ report, onNewSearch, onCompetitiveAnalysis }) => {
           </h2>
 
           <div className="bg-slate-50 rounded-lg p-6 border border-slate-200">
-            <p className="text-slate-700 leading-relaxed whitespace-pre-line">
-              {data.analysis}
-            </p>
+            <FormattedAnalysis 
+              text={data.analysis} 
+              className="max-w-none"
+            />
           </div>
         </section>
       </div>

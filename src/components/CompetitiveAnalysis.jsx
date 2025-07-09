@@ -13,8 +13,14 @@ import {
 
 const CompetitiveAnalysis = ({ report, onBack }) => {
   const { data } = report;
+  const [showGlobal, setShowGlobal] = useState(true);
+  const [showNational, setShowNational] = useState(false);
   
-  if (!data.competitive || !data.competitive.competitors || data.competitive.competitors.length === 0) {
+  // Check if we have any competitive data
+  const hasGlobalCompetitors = data.competitive?.global_competitors?.length > 0;
+  const hasNationalCompetitors = data.competitive?.national_competitors?.length > 0;
+  
+  if (!data.competitive || (!hasGlobalCompetitors && !hasNationalCompetitors)) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 flex items-center justify-center">
         <div className="text-center">
@@ -57,61 +63,93 @@ const CompetitiveAnalysis = ({ report, onBack }) => {
     return `$${value.toFixed(2)}`;
   };
 
-  // Helper function to format percentage
-  const formatPercentage = (value) => {
-    if (!value || value === 'N/A') return '0%';
-    return value.includes('%') ? value : `${value}%`;
-  };
-
-  // Prepare data for charts
+  // COMPLETELY NEW DATA PREPARATION LOGIC
   const prepareChartData = () => {
-    const companies = [
-      {
-        name: data.overview.name,
-        ticker: data.overview.ticker,
-        marketCap: parseNumeric(data.overview.marketCap),
-        price: parseNumeric(data.overview.price),
-        revenue: parseNumeric(data.financials.revenue),
-        netIncome: parseNumeric(data.financials.netIncome),
-        eps: parseNumeric(data.financials.eps),
-        peRatio: parseNumeric(data.financials.peRatio),
-        change: parseNumeric(data.overview.change.replace('%', '')),
-        isMainCompany: true
-      },
-      ...data.competitive.competitors.map(competitor => ({
-        name: competitor.name,
-        ticker: competitor.ticker,
-        marketCap: parseNumeric(competitor.marketCap),
-        price: parseNumeric(competitor.price),
-        revenue: parseNumeric(competitor.revenue),
-        netIncome: parseNumeric(competitor.netIncome),
-        eps: parseNumeric(competitor.eps),
-        peRatio: parseNumeric(competitor.peRatio),
-        change: parseNumeric(competitor.change.replace('%', '')),
-        isMainCompany: false
-      }))
-    ];
+    // Start with main company - always included
+    const companies = [{
+      ticker: data.overview.ticker,
+      name: data.overview.name,
+      marketCap: parseNumeric(data.overview.marketCap),
+      price: parseNumeric(data.overview.price),
+      revenue: parseNumeric(data.financials.revenue),
+      netIncome: parseNumeric(data.financials.netIncome),
+      eps: parseNumeric(data.financials.eps),
+      peRatio: parseNumeric(data.financials.peRatio),
+      change: parseNumeric(data.overview.change.replace('%', '')),
+      type: 'main'
+    }];
+
+    // Add competitors based on what's selected
+    if (showGlobal && data.competitive.global_competitors) {
+      data.competitive.global_competitors.forEach(competitor => {
+        companies.push({
+          ticker: competitor.ticker,
+          name: competitor.name,
+          marketCap: parseNumeric(competitor.marketCap),
+          price: parseNumeric(competitor.price),
+          revenue: parseNumeric(competitor.revenue),
+          netIncome: parseNumeric(competitor.netIncome),
+          eps: parseNumeric(competitor.eps),
+          peRatio: parseNumeric(competitor.peRatio),
+          change: parseNumeric(competitor.change.replace('%', '')),
+          type: 'global'
+        });
+      });
+    }
+
+    if (showNational && data.competitive.national_competitors) {
+      data.competitive.national_competitors.forEach(competitor => {
+        // Check if this competitor is already in the list (from global)
+        const existingIndex = companies.findIndex(c => c.ticker === competitor.ticker);
+        
+        if (existingIndex !== -1) {
+          // Company exists, update type to indicate it's in both
+          companies[existingIndex].type = 'both';
+        } else {
+          // New company, add it
+          companies.push({
+            ticker: competitor.ticker,
+            name: competitor.name,
+            marketCap: parseNumeric(competitor.marketCap),
+            price: parseNumeric(competitor.price),
+            revenue: parseNumeric(competitor.revenue),
+            netIncome: parseNumeric(competitor.netIncome),
+            eps: parseNumeric(competitor.eps),
+            peRatio: parseNumeric(competitor.peRatio),
+            change: parseNumeric(competitor.change.replace('%', '')),
+            type: 'national'
+          });
+        }
+      });
+    }
 
     return companies;
   };
 
   const chartData = prepareChartData();
 
-  // Custom tooltip component
+  // COMPLETELY NEW TOOLTIP LOGIC
   const CustomTooltip = ({ active, payload, label }) => {
     if (active && payload && payload.length) {
-      const data = payload[0].payload;
-      const value = payload[0].value;
-      const formatter = payload[0].payload.formatter || ((v) => v);
+      const companyData = chartData.find(c => c.ticker === label);
       
       return (
         <div className="bg-white p-3 border border-slate-200 rounded-lg shadow-lg">
-          <p className="font-semibold text-slate-800">{`${data.name} (${data.ticker})`}</p>
+          <p className="font-semibold text-slate-800">{`${companyData?.name || label} (${label})`}</p>
           <p className="text-sm text-slate-600">
-            {`${payload[0].name}: ${typeof value === 'number' ? value.toFixed(2) : value}`}
+            {`Value: ${typeof payload[0].value === 'number' ? payload[0].value.toFixed(2) : payload[0].value}`}
           </p>
-          {data.isMainCompany && (
-            <p className="text-xs text-blue-600 mt-1">Primary Company</p>
+          {companyData?.type === 'main' && (
+            <p className="text-xs text-purple-600 mt-1">Primary Company</p>
+          )}
+          {companyData?.type === 'global' && (
+            <p className="text-xs text-blue-600 mt-1">Global Competitor</p>
+          )}
+          {companyData?.type === 'national' && (
+            <p className="text-xs text-green-600 mt-1">National Competitor</p>
+          )}
+          {companyData?.type === 'both' && (
+            <p className="text-xs text-orange-600 mt-1">Global & National Competitor</p>
           )}
         </div>
       );
@@ -127,13 +165,15 @@ const CompetitiveAnalysis = ({ report, onBack }) => {
         {
           title: "Market Capitalization",
           dataKey: "marketCap",
-          color: "#3b82f6",
+          globalColor: "#3b82f6",
+          nationalColor: "#10b981",
           formatter: formatCurrency
         },
         {
           title: "Stock Price",
           dataKey: "price",
-          color: "#10b981",
+          globalColor: "#8b5cf6",
+          nationalColor: "#f59e0b",
           formatter: (value) => `$${value.toFixed(2)}`
         }
       ]
@@ -144,13 +184,15 @@ const CompetitiveAnalysis = ({ report, onBack }) => {
         {
           title: "Revenue",
           dataKey: "revenue",
-          color: "#8b5cf6",
+          globalColor: "#ef4444",
+          nationalColor: "#06b6d4",
           formatter: formatCurrency
         },
         {
           title: "Net Income",
           dataKey: "netIncome",
-          color: "#f59e0b",
+          globalColor: "#84cc16",
+          nationalColor: "#f97316",
           formatter: formatCurrency
         }
       ]
@@ -161,13 +203,15 @@ const CompetitiveAnalysis = ({ report, onBack }) => {
         {
           title: "Earnings Per Share (EPS)",
           dataKey: "eps",
-          color: "#ef4444",
+          globalColor: "#ec4899",
+          nationalColor: "#8b5cf6",
           formatter: (value) => `$${value.toFixed(2)}`
         },
         {
           title: "Price-to-Earnings Ratio",
           dataKey: "peRatio",
-          color: "#06b6d4",
+          globalColor: "#06b6d4",
+          nationalColor: "#84cc16",
           formatter: (value) => `${value.toFixed(1)}x`
         }
       ]
@@ -178,12 +222,73 @@ const CompetitiveAnalysis = ({ report, onBack }) => {
         {
           title: "Price Change (%)",
           dataKey: "change",
-          color: "#84cc16",
+          globalColor: "#10b981",
+          nationalColor: "#f59e0b",
           formatter: (value) => `${value.toFixed(2)}%`
         }
       ]
     }
   ];
+
+  // Get active display mode
+  const getDisplayMode = () => {
+    if (showGlobal && showNational) return 'both';
+    if (showGlobal) return 'global';
+    if (showNational) return 'national';
+    return 'none';
+  };
+
+  const displayMode = getDisplayMode();
+
+  // COMPLETELY NEW FILL DETERMINATION LOGIC
+  const getFillColor = (company, chart, chartIndex) => {
+    // Main company is always purple
+    if (company.type === 'main') {
+      return '#8b5cf6';
+    }
+
+    // For price change, use dynamic colors
+    if (chart.dataKey === 'change') {
+      const baseColor = company.change >= 0 ? '#10b981' : '#ef4444';
+      
+      if (displayMode === 'both') {
+        // In overlay mode, national/both companies get striped pattern
+        if (company.type === 'national' || company.type === 'both') {
+          return `url(#stripes-change-${chartIndex})`;
+        } else {
+          return baseColor;
+        }
+      } else {
+        return baseColor;
+      }
+    }
+
+    // For other charts
+    if (displayMode === 'both') {
+      // In overlay mode, prioritize national pattern
+      if (company.type === 'national' || company.type === 'both') {
+        return `url(#stripes-${chartIndex})`;
+      } else if (company.type === 'global') {
+        return chart.globalColor;
+      }
+    } else if (displayMode === 'global') {
+      return chart.globalColor;
+    } else if (displayMode === 'national') {
+      return `url(#stripes-${chartIndex})`;
+    }
+
+    return chart.globalColor;
+  };
+
+  // Custom pattern definitions for striped bars
+  const StripedPattern = ({ id, color }) => (
+    <defs>
+      <pattern id={id} patternUnits="userSpaceOnUse" width="8" height="8" patternTransform="rotate(45)">
+        <rect width="4" height="8" fill={color} />
+        <rect x="4" width="4" height="8" fill={`${color}40`} />
+      </pattern>
+    </defs>
+  );
 
   return (
     <div className="bg-white rounded-2xl shadow-xl border border-slate-200 overflow-hidden">
@@ -204,7 +309,56 @@ const CompetitiveAnalysis = ({ report, onBack }) => {
               Competitive Analysis: {data.overview.name}
             </h1>
             <div className="text-sm text-slate-600">
-              Comparing {data.overview.ticker} against {data.competitive.competitors.length} competitors
+              Comparing {data.overview.ticker} against {chartData.length - 1} competitors
+              {displayMode === 'both' && ' (Overlay Mode - Striped National Priority)'}
+              {displayMode === 'global' && ' (Global Only)'}
+              {displayMode === 'national' && ' (National Only)'}
+            </div>
+          </div>
+          
+          {/* Separate Selectors */}
+          <div className="flex items-center space-x-4">
+            <div className="flex flex-col space-y-2">
+              <div className="flex items-center space-x-2">
+                <input
+                  type="checkbox"
+                  id="global-checkbox"
+                  checked={showGlobal}
+                  onChange={(e) => setShowGlobal(e.target.checked)}
+                  disabled={!hasGlobalCompetitors}
+                  className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 focus:ring-2 disabled:opacity-50"
+                />
+                <label 
+                  htmlFor="global-checkbox" 
+                  className={`text-sm font-medium ${!hasGlobalCompetitors ? 'text-gray-400' : 'text-slate-700'}`}
+                >
+                  Global ({data.competitive.global_competitors?.length || 0})
+                </label>
+                <div className="w-4 h-4 bg-blue-600 rounded-sm"></div>
+              </div>
+              <div className="flex items-center space-x-2">
+                <input
+                  type="checkbox"
+                  id="national-checkbox"
+                  checked={showNational}
+                  onChange={(e) => setShowNational(e.target.checked)}
+                  disabled={!hasNationalCompetitors}
+                  className="w-4 h-4 text-green-600 bg-gray-100 border-gray-300 rounded focus:ring-green-500 focus:ring-2 disabled:opacity-50"
+                />
+                <label 
+                  htmlFor="national-checkbox" 
+                  className={`text-sm font-medium ${!hasNationalCompetitors ? 'text-gray-400' : 'text-slate-700'}`}
+                >
+                  National ({data.competitive.national_competitors?.length || 0})
+                </label>
+                <div className="w-4 h-4 bg-green-600 rounded-sm relative overflow-hidden">
+                  <div className="absolute inset-0 bg-green-600 opacity-60" 
+                       style={{
+                         backgroundImage: 'repeating-linear-gradient(45deg, transparent, transparent 2px, rgba(255,255,255,0.3) 2px, rgba(255,255,255,0.3) 4px)'
+                       }}>
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
         </div>
@@ -212,10 +366,45 @@ const CompetitiveAnalysis = ({ report, onBack }) => {
 
       {/* Chart Sections */}
       <div className="p-8 space-y-12">
-        {chartSections.map((section, sectionIndex) => (
+        {/* Display Mode Indicator */}
+        {displayMode !== 'none' && (
+          <div className="bg-slate-50 rounded-lg p-4 border border-slate-200">
+            <div className="flex items-center justify-between">
+              <div>
+                <h3 className="text-lg font-semibold text-slate-800 mb-1">
+                  {displayMode === 'both' && 'Overlay Mode: Same Position Bars'}
+                  {displayMode === 'global' && 'Global Competition'}
+                  {displayMode === 'national' && 'National Competition'}
+                </h3>
+                <p className="text-sm text-slate-600">
+                  {displayMode === 'both' && 'All bars at same positions - National competitors show striped pattern, Global show solid colors'}
+                  {displayMode === 'global' && 'Showing only global competitors with solid colors'}
+                  {displayMode === 'national' && 'Showing only national competitors with striped patterns'}
+                </p>
+              </div>
+              <div className="text-sm font-medium text-slate-700">
+                {chartData.length} Companies Total
+              </div>
+            </div>
+          </div>
+        )}
+
+        {displayMode === 'none' && (
+          <div className="bg-slate-50 rounded-lg p-8 border border-slate-200 text-center">
+            <h3 className="text-lg font-semibold text-slate-800 mb-2">No Competitors Selected</h3>
+            <p className="text-sm text-slate-600">
+              Please select Global and/or National competitors using the checkboxes above to view the competitive analysis.
+            </p>
+          </div>
+        )}
+
+        {displayMode !== 'none' && chartSections.map((section, sectionIndex) => (
           <div key={sectionIndex}>
             <h2 className="text-2xl font-bold text-slate-800 mb-8 flex items-center">
-              <div className="w-1 h-8 bg-blue-500 rounded-full mr-4"></div>
+              <div className={`w-1 h-8 rounded-full mr-4 ${
+                displayMode === 'both' ? 'bg-gradient-to-b from-blue-500 to-green-500' :
+                displayMode === 'global' ? 'bg-blue-500' : 'bg-green-500'
+              }`}></div>
               {section.title}
             </h2>
             
@@ -230,8 +419,12 @@ const CompetitiveAnalysis = ({ report, onBack }) => {
                     <ResponsiveContainer width="100%" height="100%">
                       <BarChart
                         data={chartData}
-                        margin={{ top: 20, right: 30, left: 20, bottom: 60 }}
+                        margin={{ top: 20, right: 30, left: 20, bottom: 5 }}
                       >
+                        {/* Define patterns for this specific chart */}
+                        <StripedPattern id={`stripes-${chartIndex}`} color={chart.nationalColor} />
+                        <StripedPattern id={`stripes-change-${chartIndex}`} color="#10b981" />
+                        
                         <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
                         <XAxis 
                           dataKey="ticker" 
@@ -245,59 +438,79 @@ const CompetitiveAnalysis = ({ report, onBack }) => {
                           tickFormatter={chart.formatter}
                         />
                         <Tooltip content={<CustomTooltip />} />
-                        <Legend />
-                                                  <Bar 
-                            dataKey={chart.dataKey} 
-                            fill={chart.color}
-                            name={chart.title}
-                            radius={[4, 4, 0, 0]}
-                          >
-                            {chartData.map((entry, index) => {
-                              // Special handling for price change chart
-                              if (chart.dataKey === 'change') {
-                                const color = entry.change >= 0 ? '#10b981' : '#ef4444';
-                                return (
-                                  <Cell 
-                                    key={`cell-${index}`} 
-                                    fill={entry.isMainCompany ? color : `${color}80`}
-                                  />
-                                );
-                              }
-                              return (
-                                <Cell 
-                                  key={`cell-${index}`} 
-                                  fill={entry.isMainCompany ? chart.color : `${chart.color}80`}
-                                />
-                              );
-                            })}
-                          </Bar>
+                        
+                        {/* SINGLE BAR COMPONENT - NO MULTIPLE BARS */}
+                        <Bar 
+                          dataKey={chart.dataKey} 
+                          name="Companies"
+                          radius={[4, 4, 0, 0]}
+                        >
+                          {chartData.map((company, index) => (
+                            <Cell 
+                              key={`cell-${index}`} 
+                              fill={getFillColor(company, chart, chartIndex)}
+                            />
+                          ))}
+                        </Bar>
                       </BarChart>
                     </ResponsiveContainer>
                   </div>
                   
-                  {/* Chart Legend */}
-                  <div className="mt-4 flex flex-wrap justify-center gap-4">
-                    {chartData.map((company, index) => (
-                      <div key={index} className="flex items-center space-x-2">
-                        <div 
-                          className={`w-3 h-3 rounded-full ${
-                            company.isMainCompany 
-                              ? 'bg-blue-600 border-2 border-blue-800' 
-                              : 'bg-slate-400'
-                          }`}
-                        />
-                        <span className={`text-sm ${
-                          company.isMainCompany 
-                            ? 'text-slate-800 font-medium' 
-                            : 'text-slate-600'
-                        }`}>
-                          {company.ticker}
-                          {company.isMainCompany && (
-                            <span className="text-xs text-blue-600 ml-1">(Primary)</span>
-                          )}
-                        </span>
-                      </div>
-                    ))}
+                  {/* COMPLETELY NEW LEGEND */}
+                  <div className="mt-1 space-y-3">
+                    <div className="text-center text-sm font-medium text-slate-700 mb-3">
+                      Company Legend
+                    </div>
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2">
+                      {chartData.map((company, index) => (
+                        <div key={index} className="flex items-center space-x-2 bg-white px-3 py-2 rounded-lg border border-slate-200">
+                          {/* Visual indicator based on company type */}
+                          <div className="flex items-center space-x-1">
+                            {company.type === 'main' && (
+                              <div className="w-3 h-3 bg-purple-600 rounded-full border-2 border-purple-800" />
+                            )}
+                            {company.type === 'global' && (
+                              <div className="w-3 h-3 bg-blue-600 rounded-sm" />
+                            )}
+                            {(company.type === 'national' || company.type === 'both') && displayMode === 'both' && (
+                              <div className="w-3 h-3 bg-green-600 rounded-sm relative overflow-hidden">
+                                <div className="absolute inset-0 bg-green-600 opacity-60" 
+                                     style={{
+                                       backgroundImage: 'repeating-linear-gradient(45deg, transparent, transparent 1px, rgba(255,255,255,0.4) 1px, rgba(255,255,255,0.4) 2px)'
+                                     }}>
+                                </div>
+                              </div>
+                            )}
+                            {company.type === 'national' && displayMode === 'national' && (
+                              <div className="w-3 h-3 bg-green-600 rounded-sm relative overflow-hidden">
+                                <div className="absolute inset-0 bg-green-600 opacity-60" 
+                                     style={{
+                                       backgroundImage: 'repeating-linear-gradient(45deg, transparent, transparent 1px, rgba(255,255,255,0.4) 1px, rgba(255,255,255,0.4) 2px)'
+                                     }}>
+                                </div>
+                              </div>
+                            )}
+                          </div>
+                          
+                          {/* Company name and ticker */}
+                          <div className="flex-1 min-w-0">
+                            <div className={`text-sm font-medium truncate ${
+                              company.type === 'main' ? 'text-purple-700' :
+                              company.type === 'global' ? 'text-blue-700' :
+                              company.type === 'national' ? 'text-green-700' :
+                              'text-orange-700'
+                            }`}>
+                              {company.name}
+                            </div>
+                            <div className="text-xs text-slate-500">
+                              {company.ticker}
+                              {company.type === 'main' && ' (Primary)'}
+                              {company.type === 'both' && ' (Both Lists)'}
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
                   </div>
                 </div>
               ))}
@@ -309,4 +522,4 @@ const CompetitiveAnalysis = ({ report, onBack }) => {
   );
 };
 
-export default CompetitiveAnalysis; 
+export default CompetitiveAnalysis;
