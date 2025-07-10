@@ -1,6 +1,5 @@
 // Popular stock tickers with company names for suggestions
 export const popularTickers = [
-  // Tech Giants
   { ticker: 'AAPL', name: 'Apple Inc.' },
   { ticker: 'MSFT', name: 'Microsoft Corporation' },
   { ticker: 'GOOGL', name: 'Alphabet Inc.' },
@@ -11,8 +10,6 @@ export const popularTickers = [
   { ticker: 'NFLX', name: 'Netflix Inc.' },
   { ticker: 'CRM', name: 'Salesforce Inc.' },
   { ticker: 'ORCL', name: 'Oracle Corporation' },
-  
-  // Financial Services
   { ticker: 'JPM', name: 'JPMorgan Chase & Co.' },
   { ticker: 'BAC', name: 'Bank of America Corp.' },
   { ticker: 'WFC', name: 'Wells Fargo & Company' },
@@ -21,16 +18,12 @@ export const popularTickers = [
   { ticker: 'V', name: 'Visa Inc.' },
   { ticker: 'MA', name: 'Mastercard Inc.' },
   { ticker: 'PYPL', name: 'PayPal Holdings Inc.' },
-  
-  // Healthcare & Pharma
   { ticker: 'JNJ', name: 'Johnson & Johnson' },
   { ticker: 'PFE', name: 'Pfizer Inc.' },
   { ticker: 'UNH', name: 'UnitedHealth Group Inc.' },
   { ticker: 'ABBV', name: 'AbbVie Inc.' },
   { ticker: 'MRK', name: 'Merck & Co. Inc.' },
   { ticker: 'TMO', name: 'Thermo Fisher Scientific Inc.' },
-  
-  // Consumer & Retail
   { ticker: 'WMT', name: 'Walmart Inc.' },
   { ticker: 'HD', name: 'Home Depot Inc.' },
   { ticker: 'PG', name: 'Procter & Gamble Co.' },
@@ -39,37 +32,67 @@ export const popularTickers = [
   { ticker: 'NKE', name: 'Nike Inc.' },
   { ticker: 'COST', name: 'Costco Wholesale Corp.' },
   { ticker: 'SBUX', name: 'Starbucks Corporation' },
-  
-  // Industrial & Energy
   { ticker: 'XOM', name: 'Exxon Mobil Corporation' },
   { ticker: 'CVX', name: 'Chevron Corporation' },
   { ticker: 'BA', name: 'Boeing Company' },
   { ticker: 'CAT', name: 'Caterpillar Inc.' },
   { ticker: 'GE', name: 'General Electric Company' },
   { ticker: 'MMM', name: '3M Company' },
-  
-  // Telecommunications
   { ticker: 'VZ', name: 'Verizon Communications Inc.' },
   { ticker: 'T', name: 'AT&T Inc.' },
   { ticker: 'TMUS', name: 'T-Mobile US Inc.' },
-  
-  // ETFs
   { ticker: 'SPY', name: 'SPDR S&P 500 ETF Trust' },
   { ticker: 'QQQ', name: 'Invesco QQQ Trust' },
   { ticker: 'IWM', name: 'iShares Russell 2000 ETF' },
   { ticker: 'VTI', name: 'Vanguard Total Stock Market ETF' },
-  
-  // Crypto-related
   { ticker: 'COIN', name: 'Coinbase Global Inc.' },
   { ticker: 'MSTR', name: 'MicroStrategy Inc.' },
-  
-  // Emerging Tech
   { ticker: 'PLTR', name: 'Palantir Technologies Inc.' },
   { ticker: 'SNOW', name: 'Snowflake Inc.' },
   { ticker: 'ZM', name: 'Zoom Video Communications Inc.' },
   { ticker: 'ROKU', name: 'Roku Inc.' },
   { ticker: 'SQ', name: 'Block Inc.' },
   { ticker: 'SHOP', name: 'Shopify Inc.' },
+  { ticker: 'AAL', name: 'American Airlines Group Inc.' },
+  { ticker: 'ABNB', name: 'Airbnb, Inc.' },
+  { ticker: 'AMAT', name: 'Applied Materials, Inc.' },
+  { ticker: 'AVGO', name: 'Broadcom Inc.' },
+  { ticker: 'AXP', name: 'American Express Company' },
+  { ticker: 'BABA', name: 'Alibaba Group Holding Limited' },
+  { ticker: 'BIDU', name: 'Baidu, Inc.' },
+  { ticker: 'BNTX', name: 'BioNTech SE' },
+  { ticker: 'BUD', name: 'Anheuser-Busch InBev SA/NV' },
+  { ticker: 'C', name: 'Citigroup Inc.' },
+  { ticker: 'CMCSA', name: 'Comcast Corporation' },
+  { ticker: 'CRCL', name: 'Circle Internet Group' },
+  { ticker: 'CSCO', name: 'Cisco Systems, Inc.' },
+  { ticker: 'DIS', name: 'The Walt Disney Company' },
+  { ticker: 'GOOG', name: 'Alphabet Inc.' },
+  { ticker: 'HON', name: 'Honeywell International Inc.' },
+  { ticker: 'HOOD', name: 'Robinhood Markets, Inc.' },
+  { ticker: 'HSBC', name: 'HSBC Holdings plc' },
+  { ticker: 'IBM', name: 'International Business Machines Corporation' },
+  { ticker: 'INTC', name: 'Intel Corporation' },
+  { ticker: 'JD', name: 'JD.com, Inc.' },
+  { ticker: 'LI', name: 'Li Auto Inc.' },
+  { ticker: 'LMT', name: 'Lockheed Martin Corporation' },
+  { ticker: 'LULU', name: 'lululemon athletica inc.' },
+  { ticker: 'MCD', name: 'McDonalds Corporation' },
+  { ticker: 'MRNA', name: 'Moderna, Inc.' },
+  { ticker: 'NIO', name: 'NIO Inc.' },
+  { ticker: 'NTES', name: 'NetEase, Inc.' },
+  { ticker: 'NVS', name: 'Novartis AG' },
+  { ticker: 'PM', name: 'Philip Morris International Inc.' },
+  { ticker: 'SE', name: 'Sea Limited' },
+  { ticker: 'SPOT', name: 'Spotify Technology S.A.' },
+  { ticker: 'TCOM', name: 'Trip.com Group Limited' },
+  { ticker: 'TM', name: 'Toyota Motor Corporation' },
+  { ticker: 'TRMB', name: 'Trimble Inc.' },
+  { ticker: 'TSM', name: 'Taiwan Semiconductor Manufacturing Company Limited' },
+  { ticker: 'U', name: 'Unity Software Inc.' },
+  { ticker: 'UBER', name: 'Uber Technologies, Inc.' },
+  { ticker: 'UL', name: 'Unilever PLC' },
+  { ticker: 'XPEV', name: 'XPeng Inc.' },
 ];
 
 export const searchTickers = (query) => {
