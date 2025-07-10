@@ -7,6 +7,8 @@ import SearchForm from './components/SearchForm';
 import ReportDisplay from './components/ReportDisplay';
 import ResearchHistory from './components/ResearchHistory';
 import CompetitiveAnalysisPage from './components/CompetitiveAnalysisPage';
+import LoadingPage from './components/LoadingPage';
+import WhitelistManager from './components/WhitelistManager';
 
 function AppContent() {
   const { isAuthenticated } = useAuth();
@@ -15,6 +17,8 @@ function AppContent() {
   const [isLoading, setIsLoading] = useState(false);
   const [isLoadingHistory, setIsLoadingHistory] = useState(false);
   const [showCompetitiveAnalysis, setShowCompetitiveAnalysis] = useState(false);
+  const [showAdminPanel, setShowAdminPanel] = useState(false);
+  const [loadingInfo, setLoadingInfo] = useState({ companyName: '', ticker: '' });
 
   // Load research history from backend when user is authenticated
   useEffect(() => {
@@ -49,6 +53,7 @@ function AppContent() {
 
   const handleSearch = async (prompt, ticker) => {
     setIsLoading(true);
+    setLoadingInfo({ companyName: prompt, ticker: ticker });
 
     const apiUrl = import.meta.env.VITE_API_URL || '';
 
@@ -73,6 +78,7 @@ function AppContent() {
       }
     } finally {
       setIsLoading(false);
+      setLoadingInfo({ companyName: '', ticker: '' });
     }
   };
 
@@ -112,9 +118,34 @@ function AppContent() {
     }
   };
 
+  // Show loading page when analysis is in progress
+  if (isLoading && loadingInfo.companyName && loadingInfo.ticker) {
+    return <LoadingPage companyName={loadingInfo.companyName} ticker={loadingInfo.ticker} />;
+  }
+
+  // Show admin panel
+  if (showAdminPanel) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100">
+        <Header onShowAdmin={() => setShowAdminPanel(true)} />
+        <div className="container mx-auto px-4 py-8">
+          <div className="mb-4">
+            <button
+              onClick={() => setShowAdminPanel(false)}
+              className="px-4 py-2 text-sm font-medium text-slate-700 bg-slate-100 hover:bg-slate-200 rounded-md transition-colors"
+            >
+              ← Back to Research
+            </button>
+          </div>
+          <WhitelistManager />
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100">
-      <Header />
+      <Header onShowAdmin={() => setShowAdminPanel(true)} />
       
       <div className="container mx-auto px-4 py-8">
         {/* Header */}

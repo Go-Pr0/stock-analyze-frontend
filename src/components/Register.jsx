@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import axios from 'axios';
 import { useAuth } from '../contexts/AuthContext';
 
 const Register = ({ onToggleMode }) => {
@@ -38,10 +39,46 @@ const Register = ({ onToggleMode }) => {
 
     setLoading(true);
 
-    const result = await register(formData.email, formData.username, formData.password);
-    
-    if (!result.success) {
-      setError(result.error);
+    try {
+      // Check if email is whitelisted before attempting registration
+      const apiUrl = import.meta.env.VITE_API_URL || '';
+      const whitelistResponse = await axios.get(`${apiUrl}/api/auth/check-whitelist/${encodeURIComponent(formData.email)}`);
+      
+      if (!whitelistResponse.data.whitelisted) {
+        setError('Your email is not authorized to create an account. Please contact the administrator for access.');
+        setLoading(false);
+        return;
+      }
+
+      // Proceed with registration if email is whitelisted
+      const result = await register(formData.email, formData.username, formData.password);
+      
+      if (!result.success) {
+        // Provide more specific error messages
+        if (result.error.includes('Email already registered')) {
+          setError('This email address is already registered. Please try logging in instead.');
+        } else if (result.error.includes('Username already taken')) {
+          setError('This username is already taken. Please choose a different username.');
+        } else if (result.error.includes('Email not authorized')) {
+          setError('Your email is not authorized to create an account. Please contact the administrator for access.');
+        } else {
+          setError(result.error);
+        }
+      }
+    } catch (error) {
+      console.error('Registration process failed:', error);
+      if (error.response?.status === 400) {
+        const errorDetail = error.response.data?.detail || 'Registration failed';
+        if (errorDetail.includes('Email already registered')) {
+          setError('This email address is already registered. Please try logging in instead.');
+        } else if (errorDetail.includes('Username already taken')) {
+          setError('This username is already taken. Please choose a different username.');
+        } else {
+          setError(errorDetail);
+        }
+      } else {
+        setError('Unable to complete registration. Please try again later.');
+      }
     }
     
     setLoading(false);
@@ -57,6 +94,12 @@ const Register = ({ onToggleMode }) => {
           <p className="mt-2 text-sm text-slate-600">
             Join the stock research platform
           </p>
+          <div className="mt-4 p-3 bg-blue-50 border border-blue-200 rounded-md">
+            <p className="text-sm text-blue-700">
+              <strong>Note:</strong> Only authorized email addresses can create accounts. 
+              Contact your administrator if you need access.
+            </p>
+          </div>
         </div>
         
         <form className="mt-8 space-y-6 bg-white p-8 rounded-lg shadow-lg" onSubmit={handleSubmit}>
