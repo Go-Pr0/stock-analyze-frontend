@@ -14,27 +14,34 @@ const LoadingPage = ({ companyName, ticker }) => {
   ];
 
   useEffect(() => {
-    const stepInterval = setInterval(() => {
-      setCurrentStep(prev => {
-        if (prev < steps.length - 1) {
-          return prev + 1;
-        }
-        return prev;
-      });
-    }, 2000);
+    let stepTimeout;
+    let progressInterval;
 
-    const progressInterval = setInterval(() => {
+    const advanceStep = (stepIndex) => {
+      if (stepIndex < steps.length - 1) {
+        stepTimeout = setTimeout(() => {
+          setCurrentStep(stepIndex + 1);
+          advanceStep(stepIndex + 1);
+        }, steps[stepIndex].duration);
+      }
+    };
+
+    // Start the step progression
+    advanceStep(0);
+
+    // Progress bar animation - make it sync with step durations
+    progressInterval = setInterval(() => {
       setProgress(prev => {
         if (prev < 95) {
-          return prev + Math.random() * 3;
+          return prev + Math.random() * 2;
         }
         return prev;
       });
-    }, 200);
+    }, 300);
 
     return () => {
-      clearInterval(stepInterval);
-      clearInterval(progressInterval);
+      if (stepTimeout) clearTimeout(stepTimeout);
+      if (progressInterval) clearInterval(progressInterval);
     };
   }, []);
 
