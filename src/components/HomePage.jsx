@@ -1,8 +1,5 @@
 import EnhancedSearchForm from './EnhancedSearchForm';
 import FeatureCards from './FeatureCards';
-import QuickStats from './QuickStats';
-import PopularStocks from './PopularStocks';
-import RecentNews from './RecentNews';
 import ResearchHistory from './ResearchHistory';
 
 const HomePage = ({ 
@@ -12,10 +9,6 @@ const HomePage = ({
   onHistorySelect, 
   onDeleteReport 
 }) => {
-  const handleQuickAnalysis = (companyName, ticker) => {
-    onSearch(companyName, ticker);
-  };
-
   return (
     <div className="max-w-7xl mx-auto">
       {/* Hero Section */}
@@ -35,12 +28,6 @@ const HomePage = ({
         </div>
       </div>
 
-      {/* Quick Stats */}
-      <QuickStats />
-
-      {/* Popular Stocks */}
-      <PopularStocks onQuickAnalysis={handleQuickAnalysis} />
-
       {/* Feature Cards */}
       <div className="mb-12">
         <h2 className="text-2xl font-bold text-slate-800 text-center mb-8">
@@ -49,24 +36,16 @@ const HomePage = ({
         <FeatureCards />
       </div>
 
-      {/* Two Column Layout for News and History */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        {/* Recent News - Takes 2 columns */}
-        <div className="lg:col-span-2">
-          <RecentNews />
+      {/* Research History - Full Width */}
+      {researchHistory.length > 0 && (
+        <div className="mb-8">
+          <ResearchHistory 
+            history={researchHistory} 
+            onSelect={onHistorySelect}
+            onDelete={onDeleteReport}
+          />
         </div>
-        
-        {/* Research History - Takes 1 column */}
-        <div className="lg:col-span-1">
-          {researchHistory.length > 0 && (
-            <ResearchHistory 
-              history={researchHistory} 
-              onSelect={onHistorySelect}
-              onDelete={onDeleteReport}
-            />
-          )}
-        </div>
-      </div>
+      )}
 
       {/* Call to Action Section */}
       <div className="bg-gradient-to-r from-blue-600 to-blue-700 rounded-2xl p-8 text-center text-white mb-8">
