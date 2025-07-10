@@ -4,6 +4,7 @@ import { AuthProvider, useAuth } from './contexts/AuthContext';
 import AuthWrapper from './components/AuthWrapper';
 import Header from './components/Header';
 import SearchForm from './components/SearchForm';
+import HomePage from './components/HomePage';
 import ReportDisplay from './components/ReportDisplay';
 import ResearchHistory from './components/ResearchHistory';
 import CompetitiveAnalysisPage from './components/CompetitiveAnalysisPage';
@@ -95,6 +96,12 @@ function AppContent() {
     setShowCompetitiveAnalysis(false);
   };
 
+  const handleGoHome = () => {
+    setCurrentReport(null);
+    setShowCompetitiveAnalysis(false);
+    setShowAdminPanel(false);
+  };
+
   const handleDeleteReport = async (reportId) => {
     const apiUrl = import.meta.env.VITE_API_URL || '';
 
@@ -127,11 +134,11 @@ function AppContent() {
   if (showAdminPanel) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100">
-        <Header onShowAdmin={() => setShowAdminPanel(true)} />
+        <Header onShowAdmin={() => setShowAdminPanel(true)} onGoHome={handleGoHome} />
         <div className="container mx-auto px-4 py-8">
           <div className="mb-4">
             <button
-              onClick={() => setShowAdminPanel(false)}
+              onClick={handleGoHome}
               className="px-4 py-2 text-sm font-medium text-slate-700 bg-slate-100 hover:bg-slate-200 rounded-md transition-colors"
             >
               ← Back to Research
@@ -145,63 +152,46 @@ function AppContent() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100">
-      <Header onShowAdmin={() => setShowAdminPanel(true)} />
+      <Header onShowAdmin={() => setShowAdminPanel(true)} onGoHome={handleGoHome} />
       
       <div className="container mx-auto px-4 py-8">
-        {/* Header */}
-        <div className="text-center mb-12">
-          <p className="text-lg text-slate-600 max-w-2xl mx-auto">
-            Get comprehensive company analysis and financial insights with our advanced research tools
-          </p>
-        </div>
-
         {/* Main Content */}
-        <div className="max-w-6xl mx-auto">
-          {!currentReport ? (
-            <div className="flex flex-col items-center justify-center min-h-[60vh]">
-              <SearchForm onSearch={handleSearch} isLoading={isLoading} />
-              {researchHistory.length > 0 && (
-                <div className="mt-16 w-full max-w-4xl">
-                  <ResearchHistory 
-                    history={researchHistory} 
-                    onSelect={handleHistorySelect}
-                    onDelete={handleDeleteReport}
-                  />
-                </div>
-              )}
+        {!currentReport ? (
+          <HomePage 
+            onSearch={handleSearch}
+            isLoading={isLoading}
+            researchHistory={researchHistory}
+            onHistorySelect={handleHistorySelect}
+            onDeleteReport={handleDeleteReport}
+          />
+        ) : showCompetitiveAnalysis ? (
+          <CompetitiveAnalysisPage
+            report={currentReport}
+            onBack={handleBackToReport}
+            researchHistory={researchHistory}
+            onHistorySelect={handleHistorySelect}
+            onDeleteReport={handleDeleteReport}
+            currentReportId={currentReport?.id}
+          />
+        ) : (
+          <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
+            <div className="lg:col-span-3">
+              <ReportDisplay 
+                report={currentReport} 
+                onNewSearch={handleGoHome}
+                onCompetitiveAnalysis={handleCompetitiveAnalysis}
+              />
             </div>
-          ) : showCompetitiveAnalysis ? (
-            <CompetitiveAnalysisPage
-              report={currentReport}
-              onBack={handleBackToReport}
-              researchHistory={researchHistory}
-              onHistorySelect={handleHistorySelect}
-              onDeleteReport={handleDeleteReport}
-              currentReportId={currentReport?.id}
-            />
-          ) : (
-            <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
-              <div className="lg:col-span-3">
-                <ReportDisplay 
-                  report={currentReport} 
-                  onNewSearch={() => {
-                    setCurrentReport(null);
-                    setShowCompetitiveAnalysis(false);
-                  }}
-                  onCompetitiveAnalysis={handleCompetitiveAnalysis}
-                />
-              </div>
-              <div className="lg:col-span-1">
-                <ResearchHistory 
-                  history={researchHistory} 
-                  onSelect={handleHistorySelect}
-                  onDelete={handleDeleteReport}
-                  currentReportId={currentReport?.id}
-                />
-              </div>
+            <div className="lg:col-span-1">
+              <ResearchHistory 
+                history={researchHistory} 
+                onSelect={handleHistorySelect}
+                onDelete={handleDeleteReport}
+                currentReportId={currentReport?.id}
+              />
             </div>
-          )}
-        </div>
+          </div>
+        )}
       </div>
     </div>
   );

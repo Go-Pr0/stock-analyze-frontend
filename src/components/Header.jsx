@@ -1,7 +1,7 @@
 import React from 'react';
 import { useAuth } from '../contexts/AuthContext';
 
-const Header = ({ onShowAdmin }) => {
+const Header = ({ onShowAdmin, onGoHome }) => {
   const { user, logout } = useAuth();
 
   return (
@@ -9,9 +9,12 @@ const Header = ({ onShowAdmin }) => {
       <div className="container mx-auto px-4 py-4">
         <div className="flex justify-between items-center">
           <div>
-            <h1 className="text-2xl font-bold text-slate-800">
+            <button
+              onClick={onGoHome}
+              className="text-2xl font-bold text-slate-800 hover:text-blue-600 transition-colors duration-200"
+            >
               Stock Research Platform
-            </h1>
+            </button>
           </div>
           
           <div className="flex items-center space-x-4">
