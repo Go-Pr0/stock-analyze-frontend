@@ -76,7 +76,7 @@ const FeatureCards = () => {
       {features.map((feature, index) => (
         <div
           key={index}
-          className="bg-white/80 backdrop-blur-sm rounded-2xl p-6 shadow-lg hover:shadow-xl transition-all duration-300 border border-slate-200 hover:border-slate-300 group"
+          className="bg-white/80 backdrop-blur-sm rounded-2xl p-6 shadow-lg hover:shadow-xl transition-all duration-300 border border-slate-200 hover:border-slate-300 group relative z-10"
         >
           <div className={`inline-flex items-center justify-center w-12 h-12 rounded-xl ${colorClasses[feature.color].split(' ').slice(-2).join(' ')} mb-4 group-hover:scale-110 transition-transform duration-300`}>
             <div className={colorClasses[feature.color].split(' ').slice(-3, -2).join(' ')}>
