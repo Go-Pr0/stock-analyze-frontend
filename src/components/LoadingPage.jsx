@@ -16,16 +16,23 @@ const LoadingPage = ({ companyName, ticker }) => {
   useEffect(() => {
     const totalDuration = steps.reduce((acc, step) => acc + step.duration, 0);
     let elapsedTime = 0;
-    let stepStartTime = 0;
 
     const stepUpdater = setInterval(() => {
-      elapsedTime = (elapsedTime + 100) % totalDuration;
-      
+      elapsedTime += 100;
+
+      if (elapsedTime >= totalDuration) {
+        clearInterval(stepUpdater);
+        setCurrentStep(steps.length - 1);
+        setProgress(100);
+        return;
+      }
+
       let cumulativeDuration = 0;
       let currentStepIndex = 0;
-      for(let i=0; i<steps.length; i++){
+      let stepStartTime = 0;
+      for (let i = 0; i < steps.length; i++) {
         cumulativeDuration += steps[i].duration;
-        if(elapsedTime < cumulativeDuration){
+        if (elapsedTime < cumulativeDuration) {
           currentStepIndex = i;
           stepStartTime = cumulativeDuration - steps[i].duration;
           break;
@@ -36,11 +43,14 @@ const LoadingPage = ({ companyName, ticker }) => {
       const timeInCurrentStep = elapsedTime - stepStartTime;
       const progressInCurrentStep = (timeInCurrentStep / steps[currentStepIndex].duration);
       
-      let totalProgress = 0;
-      for(let i=0; i<currentStepIndex; i++){
-        totalProgress += (steps[i].duration / totalDuration) * 100;
+      let progressOfCompletedSteps = 0;
+      for (let i = 0; i < currentStepIndex; i++) {
+        progressOfCompletedSteps += (steps[i].duration / totalDuration) * 100;
       }
-      totalProgress += progressInCurrentStep * (steps[currentStepIndex].duration / totalDuration) * 100;
+      
+      const progressOfCurrentStep = progressInCurrentStep * (steps[currentStepIndex].duration / totalDuration) * 100;
+      
+      const totalProgress = progressOfCompletedSteps + progressOfCurrentStep;
       
       setProgress(Math.min(100, totalProgress));
 
