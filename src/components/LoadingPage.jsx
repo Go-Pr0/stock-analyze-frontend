@@ -14,34 +14,40 @@ const LoadingPage = ({ companyName, ticker }) => {
   ];
 
   useEffect(() => {
-    let stepTimeout;
-    let progressInterval;
+    const totalDuration = steps.reduce((acc, step) => acc + step.duration, 0);
+    let elapsedTime = 0;
+    let stepStartTime = 0;
 
-    const advanceStep = (stepIndex) => {
-      if (stepIndex < steps.length - 1) {
-        stepTimeout = setTimeout(() => {
-          setCurrentStep(stepIndex + 1);
-          advanceStep(stepIndex + 1);
-        }, steps[stepIndex].duration);
-      }
-    };
-
-    // Start the step progression
-    advanceStep(0);
-
-    // Progress bar animation - make it sync with step durations
-    progressInterval = setInterval(() => {
-      setProgress(prev => {
-        if (prev < 95) {
-          return prev + Math.random() * 2;
+    const stepUpdater = setInterval(() => {
+      elapsedTime = (elapsedTime + 100) % totalDuration;
+      
+      let cumulativeDuration = 0;
+      let currentStepIndex = 0;
+      for(let i=0; i<steps.length; i++){
+        cumulativeDuration += steps[i].duration;
+        if(elapsedTime < cumulativeDuration){
+          currentStepIndex = i;
+          stepStartTime = cumulativeDuration - steps[i].duration;
+          break;
         }
-        return prev;
-      });
-    }, 300);
+      }
+      setCurrentStep(currentStepIndex);
+
+      const timeInCurrentStep = elapsedTime - stepStartTime;
+      const progressInCurrentStep = (timeInCurrentStep / steps[currentStepIndex].duration);
+      
+      let totalProgress = 0;
+      for(let i=0; i<currentStepIndex; i++){
+        totalProgress += (steps[i].duration / totalDuration) * 100;
+      }
+      totalProgress += progressInCurrentStep * (steps[currentStepIndex].duration / totalDuration) * 100;
+      
+      setProgress(Math.min(100, totalProgress));
+
+    }, 100);
 
     return () => {
-      if (stepTimeout) clearTimeout(stepTimeout);
-      if (progressInterval) clearInterval(progressInterval);
+      clearInterval(stepUpdater);
     };
   }, []);
 
