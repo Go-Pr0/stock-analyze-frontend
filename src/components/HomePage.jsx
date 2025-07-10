@@ -23,13 +23,13 @@ const HomePage = ({
         </p>
         
         {/* Enhanced Search Form */}
-        <div className="mb-12">
+        <div className="mb-12 relative z-20">
           <EnhancedSearchForm onSearch={onSearch} isLoading={isLoading} />
         </div>
       </div>
 
       {/* Feature Cards */}
-      <div className="mb-12">
+      <div className="mb-12 relative z-auto">
         <h2 className="text-2xl font-bold text-slate-800 text-center mb-8">
           Powerful Research Features
         </h2>
